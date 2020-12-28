@@ -15,6 +15,9 @@ class Node:
         self.point1 = point1
         self.point2 = point2
         self.index = index
+        self.trapezoid = None
+        self.leftNode = None
+        self.rightNode = None
 
 
 class Line:
@@ -33,5 +36,12 @@ class Trapezoid:
         self.bottomE = bottomE
         self.leftV = leftV
         self.rightV = rightV
+
+        self.upperRight = None
+        self.upperLeft = None
+        self.lowerLeft = None
+        self.lowerRight = None
+
+    # def __eq__(self):
 
 

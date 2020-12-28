@@ -1,5 +1,6 @@
 from random import randint
 
+
 def getLineSegments(plot):
     segments = plot.get_added_elements().lines[0].lines
     return segments
