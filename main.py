@@ -1,12 +1,8 @@
-from lib import *
-
-def print_hi(name):
-    print(f'{name}')
+from ui.lib import Plot
 
 
 if __name__ == '__main__':
-    # plot = Plot()
-    # plot.draw()
-    # print_hi('elo')
+    plot = Plot()
+    plot.draw()
 
 
