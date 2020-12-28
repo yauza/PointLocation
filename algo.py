@@ -16,11 +16,32 @@ def createBox(points: List[Point]):
     return TrapezoidNode(topEdge, bottomEdge, left, right)
 
 
-def pointLocation(dag, point):
-    if dag.type == "trapezoid":
-        return dag
-    if dag.type == "point":
+def pointLocation(node, point):
+    if node.type == "tnode":
         pass
+    if node.type == "xnode":
+        pass
+
+
+def findIntersectingTrapezoids(node, segment, intersectingTrapezoids):
+    if node.isLeaf:
+        if node.containsSegment(segment):
+            if node not in intersectingTrapezoids:
+                intersectingTrapezoids.append(node)
+
+    elif node.type == 'xnode':
+        if segment.leftPoint.x >= node.endPoint.x:
+            findIntersectingTrapezoids(node.right, segment, intersectingTrapezoids)
+        else:
+            findIntersectingTrapezoids(node.left, segment, intersectingTrapezoids)
+            if segment.rightPoint.x >= node.endPoint.x:
+                findIntersectingTrapezoids(node.right, segment, intersectingTrapezoids)
+
+    else:
+        if node.lineSegment.isPointAbove(segment.leftPoint):
+            findIntersectingTrapezoids(node.above, segment, intersectingTrapezoids)
+        else:
+            findIntersectingTrapezoids(node.below, segment, intersectingTrapezoids)
 
 
 def simpleCase(trNode, edge: Line, dag):
@@ -70,7 +91,7 @@ def removeTrapezoidsInConflict(edge: Line, dag):
     leftTrNode = pointLocation(dag, edge.start)
     rightTrNode = pointLocation(dag, edge.end)
     if leftTrNode == rightTrNode:
-        simpleCase(leftTrNode, edge)
+        simpleCase(leftTrNode, edge, dag)
     else:
         hardCase()
 
