@@ -1,4 +1,5 @@
 from typing import List
+from utils import *
 from structures import *
 import random
 
@@ -15,13 +16,6 @@ def createBox(points: List[Point]):
     return Trapezoid(topEdge, bottomEdge, left, right)
 
 
-def edgesToPoints(edges):
-    points = []
-    for e in edges:
-        points.append(e.start)
-        points.append(e.end)
-
-    return points
 
 
 def pointLocation(dag, point):
