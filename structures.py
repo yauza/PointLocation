@@ -1,30 +1,31 @@
 from utils import functionValue, coefficients
 
+
 class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    def __gt__(self, other):
-        if self.x > other.x:
-            return True
-        return False
 
 class Line:
     def __init__(self, start, end):
-        if start < end:
+        if start.x < end.x:
             self.start = start
             self.end = end
         else:
             self.start = end
             self.end = start
-
-        self.a, self.b = coefficients(self.start, self.end)
+        if start.x != end.x:
+            self.a, self.b = coefficients(self.start, self.end)
 
     def isPointAbove(self, point):
         if point.y > (self.a * point.x) + self.b:
             return True
         return False
+
+    def toList(self):
+        return [(self.start.x, self.start.y), (self.end.x, self.end.y)]
+
 
 class XNode:
     def __init__(self, point, left=None, right=None):
@@ -51,6 +52,7 @@ class XNode:
     def getName(self):
         return self.endPoint.name
 
+
 class YNode:
     def __init__(self, segment, above=None, below=None):
         self.isLeaf = False
@@ -75,6 +77,7 @@ class YNode:
 
     def getName(self):
         return self.lineSegment.name
+
 
 class TrapezoidNode:
     def __init__(self, topSegment = None, bottomSegment = None, leftPoint = None, rightPoint = None):
@@ -103,7 +106,7 @@ class TrapezoidNode:
 
     def replacePositionWith(self, dag, node):
         if not self.parents:
-            dag.updateRoot(node)
+            dag.setRoot(node)
             return
         for parent in self.parents:
             if parent.type == 'xnode':
@@ -116,6 +119,15 @@ class TrapezoidNode:
                     parent.setAbove(node)
                 else:
                     parent.setBelow(node)
+
+    def toLines(self):
+        lines = [self.topSegment.toList(), self.bottomSegment.toList()]
+        leftVerticalLine = Line(self.topSegment.start, self.bottomSegment.start)
+        rightVerticalLine = Line(self.topSegment.end, self.bottomSegment.end)
+        lines.append(leftVerticalLine.toList())
+        lines.append(rightVerticalLine.toList())
+        return lines
+
 
 
 class Dag:

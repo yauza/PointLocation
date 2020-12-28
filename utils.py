@@ -1,4 +1,3 @@
-from structures import Line
 from typing import List
 
 
@@ -11,7 +10,7 @@ def edgesToPoints(edges):
     return points
 
 
-def edgesToUIPoints(edges: List[Line]):
+def edgesToUIPoints(edges):
     points = []
     for e in edges:
         points.append([e.start.x, e.start.y])
@@ -20,12 +19,18 @@ def edgesToUIPoints(edges: List[Line]):
     return points
 
 
-def edgesToUILines(edges: List[Line]):
+def edgesToUILines(edges):
     lines = []
     for e in edges:
         lines.append([[e.start.x, e.start.y], [e.end.x, e.end.y]])
-
     return lines
+
+def uiEdgesToUIPoints(lines):
+    points = []
+    for line in lines:
+        points.extend(line)
+    return points
+
 
 
 def coefficients(p1, p2):

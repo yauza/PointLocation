@@ -3,7 +3,7 @@ from utils import *
 
 
 class Visualizer:
-    def __init__(self, lines = None):
+    def __init__(self, lines):
         self.lines = lines
         self.scenes = []
         self.line_color = 'green'
@@ -13,10 +13,10 @@ class Visualizer:
             self.addFigure(lines)
 
     def addFigure(self, lines):
-        points = edgesToUIPoints(lines)
-        lines = edgesToUILines(lines)
+        points = uiEdgesToUIPoints(lines)
+        self.lines.extend(lines)
         self.scenes.append(Scene([PointsCollection(points, color=self.point_color)],
-                     [LinesCollection(lines, color=self.line_color)]))
+                     [LinesCollection(self.lines, color=self.line_color)]))
 
     def getScenes(self):
         return self.scenes

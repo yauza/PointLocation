@@ -1,9 +1,14 @@
 from random import randint
 
+from structures import Line, Point
+
 
 def getLineSegments(plot):
     segments = plot.get_added_elements().lines[0].lines
     return segments
+
+def getLineObjects(lines):
+    return [Line(Point(line[0][0], line[0][1]), Point(line[1][0], line[1][1])) for line in lines]
 
 
 def getPoints(plot):
