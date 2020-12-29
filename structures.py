@@ -1,10 +1,14 @@
 from utils import functionValue, coefficients
-
+# from algo import *
 
 class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.seen = False
+
+    def toList(self):
+        return [self.x, self.y]
 
 
 class Line:
@@ -34,6 +38,7 @@ class XNode:
         self.setLeft(left)
         self.setRight(right)
         self.endPoint = point
+        self.endPoint.seen = True
 
     def setLeft(self, node):
         self.left = node
@@ -128,6 +133,10 @@ class TrapezoidNode:
         lines.append(rightVerticalLine.toList())
         return lines
 
+    def draw(self):
+        newTr = createTrapezoid(self.topSegment, self.bottomSegment, self.leftPoint, self.rightPoint)
+        return newTr.toLines()
+
 
 
 class Dag:
@@ -153,3 +162,20 @@ class Trapezoid:
     # def __eq__(self):
 
 
+def createTrapezoid(topSegment, bottomSegment, leftPoint, rightPoint):
+    newTr = TrapezoidNode()
+
+    # if rightPoint == None:
+    #     rightPoint = bottomSegment.end
+
+    leftUpperPoint = Point(leftPoint.x, functionValue(topSegment, leftPoint.x))
+    rightUpperPoint = Point(rightPoint.x, functionValue(topSegment, rightPoint.x))
+    leftLowerPoint = Point(leftPoint.x, functionValue(bottomSegment, leftPoint.x))
+    rightLowerPoint = Point(rightPoint.x, functionValue(bottomSegment, rightPoint.x))
+
+    newTr.topSegment = Line(leftUpperPoint, rightUpperPoint)
+    newTr.bottomSegment = Line(leftLowerPoint, rightLowerPoint)
+    newTr.leftPoint = leftPoint
+    newTr.rightPoint = rightPoint
+
+    return newTr
