@@ -1,8 +1,10 @@
-from utils import functionValue, coefficients
+from utils import functionValue
 # from algo import *
 
+
 class Point:
-    def __init__(self, x, y):
+    def __init__(self, name, x, y):
+        self.name = name
         self.x = x
         self.y = y
         self.seen = False
@@ -10,25 +12,38 @@ class Point:
     def toList(self):
         return [self.x, self.y]
 
+    def __str__(self):
+        return "(" + str(self.x) + "," + str(self.y) +  ")"
 
-class Line:
-    def __init__(self, start, end):
-        if start.x < end.x:
-            self.start = start
-            self.end = end
-        else:
-            self.start = end
-            self.end = start
-        if start.x != end.x:
-            self.a, self.b = coefficients(self.start, self.end)
+
+class Segment:
+    def __init__(self, name, p, q):
+        self.name = name
+        self.leftPoint = p
+        self.rightPoint = q
+        if q.x < p.x:
+            self.leftPoint = q
+            self.rightPoint = p
+
+        if p.x != q.x:
+            self.slope = (self.rightPoint.y - self.leftPoint.y) / (self.rightPoint.x - self.leftPoint.x)
+            self.const = self.leftPoint.y - (self.slope * self.leftPoint.x)
 
     def isPointAbove(self, point):
-        if point.y > (self.a * point.x) + self.b:
+        if point.y > (self.slope * point.x) + self.const:
             return True
         return False
 
+    def getY(self, x):
+        if self.leftPoint.x <= x <= self.rightPoint.x:
+            return (self.slope * x) + self.const
+        return None
+
     def toList(self):
-        return [(self.start.x, self.start.y), (self.end.x, self.end.y)]
+        return [(self.leftPoint.x, self.leftPoint.y), (self.rightPoint.x, self.rightPoint.y)]
+
+    def __str__(self):
+        return str(self.leftPoint) + ", " + str(self.rightPoint)
 
 
 class XNode:
@@ -93,13 +108,14 @@ class TrapezoidNode:
         self.leftPoint = leftPoint
         self.rightPoint = rightPoint
         self.parents = []
+        self.name = None
 
-    def containsSegment(self, segment: Line):
-        if self.containsPoint(segment.start) or self.containsPoint(segment.end):
+    def containsSegment(self, segment):
+        if self.containsPoint(segment.leftPoint) or self.containsPoint(segment.rightPoint):
             return True
-        resY = functionValue(segment, self.leftPoint.x)
+        resY = segment.getY(self.leftPoint.x)
         if resY is not None:
-            leftIntersection = Point(self.leftPoint.x, resY)
+            leftIntersection = Point(None, self.leftPoint.x, resY)
             if self.containsPoint(leftIntersection):
                 return True
         return False
@@ -109,9 +125,9 @@ class TrapezoidNode:
             return self.bottomSegment.isPointAbove(point) and not self.topSegment.isPointAbove(point)
         return False
 
-    def replacePositionWith(self, dag, node):
+    def replacePositionWith(self, tzMap, node):
         if not self.parents:
-            dag.setRoot(node)
+            tzMap.updateRoot(node)
             return
         for parent in self.parents:
             if parent.type == 'xnode':
@@ -125,11 +141,14 @@ class TrapezoidNode:
                 else:
                     parent.setBelow(node)
 
+    def getName(self):
+        return self.name
+
     def toLines(self):
         lines = [self.topSegment.toList(), self.bottomSegment.toList()]
-        leftVerticalLine = Line(self.topSegment.start, self.bottomSegment.start)
+        leftVerticalLine = Segment("",self.topSegment.leftPoint, self.bottomSegment.leftPoint)
         if self.rightPoint is not None:
-            rightVerticalLine = Line(self.topSegment.end, self.bottomSegment.end)
+            rightVerticalLine = Segment("",self.topSegment.rightPoint, self.bottomSegment.rightPoint)
             lines.append(rightVerticalLine.toList())
         lines.append(leftVerticalLine.toList())
         return lines
@@ -139,24 +158,16 @@ class TrapezoidNode:
         return newTr.toLines()
 
 
-class Dag:
-    def __init__(self, root):
-        self.setRoot(root)
-
-    def setRoot(self, root):
-        self.root = root
-
-
 def createTrapezoid(topSegment, bottomSegment, leftPoint, rightPoint):
     newTr = TrapezoidNode()
 
-    leftUpperPoint = Point(leftPoint.x, functionValue(topSegment, leftPoint.x))
-    leftLowerPoint = Point(leftPoint.x, functionValue(bottomSegment, leftPoint.x))
-    rightUpperPoint = Point(rightPoint.x, functionValue(topSegment, rightPoint.x))
-    rightLowerPoint = Point(rightPoint.x, functionValue(bottomSegment, rightPoint.x))
+    leftUpperPoint = Point("",leftPoint.x, functionValue(topSegment, leftPoint.x))
+    leftLowerPoint = Point("",leftPoint.x, functionValue(bottomSegment, leftPoint.x))
+    rightUpperPoint = Point("",rightPoint.x, functionValue(topSegment, rightPoint.x))
+    rightLowerPoint = Point("",rightPoint.x, functionValue(bottomSegment, rightPoint.x))
 
-    newTr.topSegment = Line(leftUpperPoint, rightUpperPoint)
-    newTr.bottomSegment = Line(leftLowerPoint, rightLowerPoint)
+    newTr.topSegment = Segment("",leftUpperPoint, rightUpperPoint)
+    newTr.bottomSegment = Segment("",leftLowerPoint, rightLowerPoint)
     newTr.leftPoint = leftPoint
     newTr.rightPoint = rightPoint
 

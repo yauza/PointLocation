@@ -1,152 +1,75 @@
-from typing import List
-from utils import *
+from ui.lib import Plot
+from ui.plot_utils import getLineSegments
+from ui.visualizer import Visualizer
 from structures import *
-import random
+
+"""
+    Segment intersects only one
+    trapezoid.
+"""
 
 
-def createBox(points: List[Point]):
-    #left = min(points, key=lambda p : p.x)
-    #right = max(points, key=lambda p : p.x)
-    #top = max(points, key=lambda p : p.y)
-    #bottom = min(points, key=lambda p : p.y)
+def simpleCase(tzMap, trapezoid, segment, visualizer = None):
+    leftTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.leftPoint)
+    topTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.leftPoint, segment.rightPoint)
+    bottomTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.leftPoint, segment.rightPoint)
+    rightTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, segment.rightPoint, trapezoid.rightPoint)
 
-    #topEdge = Line(Point(left.x, top.y), Point(right.x, top.y))
-    #bottomEdge = Line(Point(left.x, bottom.y), Point(right.x, bottom.y))
-    left = Point(0,0)
-    right = Point(1,0)
-    topEdge = Line(Point(0,1), Point(1,1))
-    bottomEdge = Line(Point(0,0), Point(1,0))
-    return TrapezoidNode(topEdge, bottomEdge, left, right)
-
-
-def pointLocation(node, point):
-    if node.type == "tnode":
-        pass
-    if node.type == "xnode":
-        pass
-
-
-def findIntersectingTrapezoids(node, segment: Line, intersectingTrapezoids):
-    if node.isLeaf:
-        if node.containsSegment(segment):
-            if node not in intersectingTrapezoids:
-                intersectingTrapezoids.append(node)
-
-    elif node.type == 'xnode':
-        if segment.start.x >= node.endPoint.x:
-            findIntersectingTrapezoids(node.right, segment, intersectingTrapezoids)
-        else:
-            findIntersectingTrapezoids(node.left, segment, intersectingTrapezoids)
-            if segment.end.x >= node.endPoint.x:
-                findIntersectingTrapezoids(node.right, segment, intersectingTrapezoids)
-
-    else:
-        if node.lineSegment.isPointAbove(segment.start):
-            findIntersectingTrapezoids(node.above, segment, intersectingTrapezoids)
-        else:
-            findIntersectingTrapezoids(node.below, segment, intersectingTrapezoids)
-
-
-def simpleCase(trNode: TrapezoidNode, edge: Line, dag, visualizer = None):
-    old_tr = trNode
-
-    # leftUpperPoint = Point(edge.start.x, functionValue(old_tr.topSegment, edge.start.x))
-    # rightUpperPoint = Point(edge.end.x, functionValue(old_tr.topSegment, edge.end.x))
-    # leftLowerPoint = Point(edge.start.x, functionValue(old_tr.bottomSegment, edge.start.x))
-    # rightLowerPoint = Point(edge.end.x, functionValue(old_tr.bottomSegment, edge.end.x))
-    #
-    # leftTr = TrapezoidNode()
-    # leftTr.topSegment = Line(old_tr.topSegment.start, leftUpperPoint)
-    # leftTr.bottomSegment = Line(old_tr.bottomSegment.start, leftLowerPoint)
-    # leftTr.leftPoint = old_tr.leftPoint
-    # leftTr.rightPoint = edge.end
-    #
-    # rightTr = TrapezoidNode()
-    # rightTr.topSegment = Line(rightUpperPoint, old_tr.topSegment.end)
-    # rightTr.bottomSegment = Line(rightLowerPoint, old_tr.bottomSegment.end)
-    # rightTr.leftPoint = edge.end
-    # rightTr.rightPoint = old_tr.rightPoint
-    #
-    # topTr = TrapezoidNode()
-    # topTr.topSegment = Line(leftUpperPoint, rightUpperPoint)
-    # topTr.bottomSegment = edge
-    # topTr.leftPoint = edge.start
-    # topTr.rightPoint = edge.end
-    #
-    # bottomTr = TrapezoidNode()
-    # bottomTr.topSegment = edge
-    # bottomTr.bottomSegment = Line(leftLowerPoint, rightLowerPoint)
-    # bottomTr.leftPoint = edge.start
-    # bottomTr.rightPoint = edge.end
-
-    # if visualizer is not None:
-    #     visualizer.addFigure(topTr.toLines())
-    #     visualizer.addFigure(leftTr.toLines())
-    #     visualizer.addFigure(rightTr.toLines())
-    #     visualizer.addFigure(bottomTr.toLines())
-
-    leftTr = TrapezoidNode(old_tr.topSegment, old_tr.bottomSegment, old_tr.leftPoint, edge.start)
-    rightTr = TrapezoidNode(old_tr.topSegment, old_tr.bottomSegment, edge.end, old_tr.rightPoint)
-    topTr = TrapezoidNode(old_tr.topSegment, edge, edge.start, edge.end)
-    bottomTr = TrapezoidNode(edge, old_tr.bottomSegment, edge.start, edge.end)
-
-    segNode = YNode(edge, topTr, bottomTr)
-    v = XNode(edge.end, segNode, rightTr)
-    u = XNode(edge.start, leftTr, v)
-    trNode.replacePositionWith(dag, u)
+    segNode = YNode(segment, topTrapezoid, bottomTrapezoid)
+    q = XNode(segment.rightPoint, segNode, rightTrapezoid)
+    p = XNode(segment.leftPoint, leftTrapezoid, q)
+    trapezoid.replacePositionWith(tzMap, p)
 
     if visualizer is not None:
-        visualizer.addDag(dag)
+        visualizer.addDag(tzMap)
 
 
-def hardCase(dag: Dag, intersectingTrapezoids, segment: Line, visualizer = None):
+"""
+    Segment intersects multiple
+    trapezoids.
+"""
+
+
+def hardCase(tzMap, intersectedTrapezoids, segment, visualizer):
+
     upperMidTrapezoid = None
     lowerMidTrapezoid = None
     mergeUpper = False
 
-    for trapezoid in intersectingTrapezoids:
+    for trapezoid in intersectedTrapezoids:
 
-        if trapezoid.containsPoint(segment.start):
+        if trapezoid.containsPoint(segment.leftPoint):
             # case where the left endpoint of the new segment lies in the trapezoid
-            leftTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.start)
+            leftTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.leftPoint)
             if segment.isPointAbove(trapezoid.rightPoint):
-                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.start, trapezoid.rightPoint)
-                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.start, None)
+                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.leftPoint, trapezoid.rightPoint)
+                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.leftPoint, None)
                 mergeUpper = False
             else:
-                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.start, None)
-                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.start, trapezoid.rightPoint)
+                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.leftPoint, None)
+                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.leftPoint, trapezoid.rightPoint)
                 mergeUpper = True
 
-            if segment.start.seen:
+            if segment.leftPoint.seen:
                 continue
-
-            #if visualizer is not None:
-                #visualizer.addFigure(leftTrapezoid.toLines())
-               # visualizer.addFigure(upperMidTrapezoid.toLines())
-                #visualizer.addFigure(lowerMidTrapezoid.toLines())
             segNode = YNode(segment, upperMidTrapezoid, lowerMidTrapezoid)
-            p = XNode(segment.start, leftTrapezoid, segNode)
-            trapezoid.replacePositionWith(dag, p)
+            p = XNode(segment.leftPoint, leftTrapezoid, segNode)
+            trapezoid.replacePositionWith(tzMap, p)
 
-        elif trapezoid.containsPoint(segment.end):
+        elif trapezoid.containsPoint(segment.rightPoint):
             # case where the right endpoint of the new segment lies in the trapezoid
-            rightTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, segment.end, trapezoid.rightPoint)
+            rightTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, segment.rightPoint, trapezoid.rightPoint)
             if mergeUpper:
-                upperMidTrapezoid.rightPoint = segment.end
-                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.end)
+                upperMidTrapezoid.rightPoint = segment.rightPoint
+                lowerMidTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.rightPoint)
             else:
-                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, trapezoid.leftPoint, segment.end)
-                lowerMidTrapezoid.rightPoint = segment.end
-            if segment.end.seen:
+                upperMidTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, trapezoid.leftPoint, segment.rightPoint)
+                lowerMidTrapezoid.rightPoint = segment.rightPoint
+            if segment.rightPoint.seen:
                 continue
-            #if visualizer is not None:
-               #visualizer.addFigure(rightTrapezoid.toLines())
-               # visualizer.addFigure(upperMidTrapezoid.toLines())
-                #visualizer.addFigure(lowerMidTrapezoid.toLines())
             segNode = YNode(segment, upperMidTrapezoid, lowerMidTrapezoid)
-            q = XNode(segment.end, segNode, rightTrapezoid)
-            trapezoid.replacePositionWith(dag, q)
+            q = XNode(segment.rightPoint, segNode, rightTrapezoid)
+            trapezoid.replacePositionWith(tzMap, q)
 
         else:
             # case where the no endpoint of the new segment lies in the trapezoid
@@ -162,42 +85,85 @@ def hardCase(dag: Dag, intersectingTrapezoids, segment: Line, visualizer = None)
                 lowerMidTrapezoid.rightPoint = trapezoid.rightPoint
                 mergeUpper = True
 
-           # if visualizer is not None:
-               # visualizer.addFigure(upperMidTrapezoid.toLines())
-               # visualizer.addFigure(lowerMidTrapezoid.toLines())
-
             segNode = YNode(segment, upperMidTrapezoid, lowerMidTrapezoid)
-            trapezoid.replacePositionWith(dag, segNode)
+            trapezoid.replacePositionWith(tzMap, segNode)
 
     if visualizer is not None:
-        visualizer.addDag(dag)
+        visualizer.addDag(tzMap)
 
 
-#not used
-def updateTrapezoidsInConflict(edge: Line, dag):
-    leftTrNode = pointLocation(dag.root, edge.start)
-    rightTrNode = pointLocation(dag.root, edge.end)
-    if leftTrNode == rightTrNode:
-        simpleCase(leftTrNode, edge, dag)
-    else:
-        hardCase()
+def findIntersectedTrapezoids(node, segment, intersectedTrapezoids):
+    if node.isLeaf:
+        if node.containsSegment(segment):
+            if node not in intersectedTrapezoids:
+                intersectedTrapezoids.append(node)
 
-
-def algo(edges, visualizer = None):
-    points = edgesToPoints(edges)
-    # randomized order
-    random.shuffle(edges)
-    # one-node DAG
-    dag = Dag(createBox(points))
-    if visualizer is not None:
-        #visualizer.addFigure(dag.root.toLines())
-        pass
-
-    for edge in edges:
-        intersectingTrapezoids = []
-        findIntersectingTrapezoids(dag.root, edge, intersectingTrapezoids)
-        if len(intersectingTrapezoids) == 1:
-            simpleCase(intersectingTrapezoids[0], edge, dag, visualizer)
+    elif node.type == 'xnode':
+        if segment.leftPoint.x >= node.endPoint.x:
+            findIntersectedTrapezoids(node.right, segment, intersectedTrapezoids)
         else:
-            hardCase(dag, intersectingTrapezoids, edge, visualizer)
+            findIntersectedTrapezoids(node.left, segment, intersectedTrapezoids)
+            if segment.rightPoint.x >= node.endPoint.x:
+                findIntersectedTrapezoids(node.right, segment, intersectedTrapezoids)
+
+    else:
+        ##if node.lineSegment.isPointAbove(segment.leftPoint):
+        findIntersectedTrapezoids(node.above, segment, intersectedTrapezoids)
+        ##else:
+        findIntersectedTrapezoids(node.below, segment, intersectedTrapezoids)
+
+
+class Dag:
+    def __init__(self, root):
+        self.root = root
+
+    def updateRoot(self, root):
+        self.root = root
+
+
+def createBoundingBox():
+    left = Point("",0,0)
+    right = Point("",1,0)
+    topEdge = Segment("",Point("",0,1), Point("",1,1))
+    bottomEdge = Segment("",Point("",0,0), Point("",1,0))
+    return TrapezoidNode(topEdge, bottomEdge, left, right)
+
+
+def findArea(node, point):
+    if node.isLeaf:
+        if node.containsPoint(point):
+            return node
+        else:
+            return None
+
+    elif node.type == 'xnode':
+        if point.x >= node.endPoint.x:
+            return findArea(node.right, point)
+        else:
+            return findArea(node.left, point)
+    else:
+        tr1 = findArea(node.above, point)
+        if tr1 is not None:
+            return tr1
+        tr2 = findArea(node.below, point)
+        return tr2
+
+
+def algo(lineSegments, visualizer = None):
+    dag = Dag(createBoundingBox())
+
+    for segment in lineSegments:
+        intersectedTrapezoids = []
+        findIntersectedTrapezoids(dag.root, segment, intersectedTrapezoids)
+        print(len(intersectedTrapezoids))
+        # handle new segment in two cases: it either intersects one trapezoid or many of them
+        if len(intersectedTrapezoids) == 1:
+            simpleCase(dag, intersectedTrapezoids[0], segment, visualizer)
+        else:
+            hardCase(dag, intersectedTrapezoids, segment, visualizer)
+
+    return dag
+
+
+
 
