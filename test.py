@@ -23,6 +23,8 @@ class Point:
     def toList(self):
         return [self.x, self.y]
 
+    def __str__(self):
+        return "(" + str(self.x) + "," + str(self.y) +  ")"
 
 class Segment:
     def __init__(self, name, p, q):
@@ -49,6 +51,9 @@ class Segment:
 
     def toList(self):
         return [(self.leftPoint.x, self.leftPoint.y), (self.rightPoint.x, self.rightPoint.y)]
+
+    def __str__(self):
+        return str(self.leftPoint) + ", " + str(self.rightPoint)
 
 
 class XNode:
@@ -180,14 +185,6 @@ class TrapezoidNode:
 
 
 def updateMapForOneTrapezoid(tzMap, trapezoid, segment, visualizer = None):
-    """
-    Function to update the map if the new segment lies entirely
-    within one existing trapezoid.
-    :param tzMap: graph instance of the trapezoidal map
-    :param trapezoid: existing trapezoid encompassing the segment
-    :param segment: new segment to be added to the map
-    :return: None
-    """
     leftTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.leftPoint)
     topTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.leftPoint, segment.rightPoint)
     bottomTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.leftPoint, segment.rightPoint)
@@ -279,10 +276,10 @@ def findIntersectingTrapezoids1(node, segment, intersectingTrapezoids):
                 findIntersectingTrapezoids1(node.right, segment, intersectingTrapezoids)
 
     else:
-        if node.lineSegment.isPointAbove(segment.leftPoint):
-            findIntersectingTrapezoids1(node.above, segment, intersectingTrapezoids)
-        else:
-            findIntersectingTrapezoids1(node.below, segment, intersectingTrapezoids)
+        ##if node.lineSegment.isPointAbove(segment.leftPoint):
+        findIntersectingTrapezoids1(node.above, segment, intersectingTrapezoids)
+        ##else:
+        findIntersectingTrapezoids1(node.below, segment, intersectingTrapezoids)
 
 
 class TZMap:
@@ -307,6 +304,7 @@ def alg(lineSegments, visualizer = None):
     for segment in lineSegments:
         intersectingTrapezoids = []
         findIntersectingTrapezoids1(tzMap.root, segment, intersectingTrapezoids)
+        print(len(intersectingTrapezoids))
         # handle new segment in two cases: it either intersects one trapezoid or many of them
         if len(intersectingTrapezoids) == 1:
             updateMapForOneTrapezoid(tzMap, intersectingTrapezoids[0], segment, visualizer)
