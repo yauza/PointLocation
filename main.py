@@ -1,11 +1,21 @@
+from algo import algo
 from structures import Line, Point
 from ui.lib import Plot
 from ui.visualizer import Visualizer
+from ui.plot_utils import *
+
 
 if __name__ == '__main__':
-    line1 = Line(Point(1,1), Point(2,2))
-    visualizer = Visualizer([line1])
+    visualizer = Visualizer([])
+    plot = Plot()
+    plot.draw()
+
+    lines = getLineObjects(getLineSegments(plot))
+
+    algo(lines, visualizer)
+
     plot = Plot(visualizer.getScenes())
     plot.draw()
+
 
 
