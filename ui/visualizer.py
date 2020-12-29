@@ -1,11 +1,13 @@
 from ui.lib import *
 from utils import *
 
+
 class DagData:
     def __init__(self):
         self.lines = []
         self.points = []
         self.trapezoids = []
+
 
 class Visualizer:
     def __init__(self, lines):
@@ -38,7 +40,7 @@ class Visualizer:
         if node is None:
             return
         if node.type == "tnode":
-            dagData.trapezoids.append(node.draw())
+            dagData.trapezoids.append(node.getDrawable())
             return
         elif node.type == "xnode":
             dagData.points.append(node.endPoint.toList())
@@ -48,11 +50,6 @@ class Visualizer:
             dagData.lines.append(node.lineSegment.toList())
             self.traverseDag(dagData, node.above)
             self.traverseDag(dagData, node.below)
-
-
-
-
-
 
     def getScenes(self):
         return self.scenes

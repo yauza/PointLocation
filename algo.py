@@ -5,10 +5,10 @@ import random
 
 
 def createBox(points: List[Point]):
-    left = min(points, key=lambda p : p.x)
-    right = max(points, key=lambda p : p.x)
-    top = max(points, key=lambda p : p.y)
-    bottom = min(points, key=lambda p : p.y)
+    #left = min(points, key=lambda p : p.x)
+    #right = max(points, key=lambda p : p.x)
+    #top = max(points, key=lambda p : p.y)
+    #bottom = min(points, key=lambda p : p.y)
 
     #topEdge = Line(Point(left.x, top.y), Point(right.x, top.y))
     #bottomEdge = Line(Point(left.x, bottom.y), Point(right.x, bottom.y))
@@ -87,13 +87,16 @@ def simpleCase(trNode: TrapezoidNode, edge: Line, dag, visualizer = None):
 
     leftTr = TrapezoidNode(old_tr.topSegment, old_tr.bottomSegment, old_tr.leftPoint, edge.start)
     rightTr = TrapezoidNode(old_tr.topSegment, old_tr.bottomSegment, edge.end, old_tr.rightPoint)
-    topTr = TrapezoidNode(old_tr.topSegment, edge, old_tr.leftPoint, old_tr.rightPoint)
+    topTr = TrapezoidNode(old_tr.topSegment, edge, edge.start, edge.end)
     bottomTr = TrapezoidNode(edge, old_tr.bottomSegment, edge.start, edge.end)
 
     segNode = YNode(edge, topTr, bottomTr)
     v = XNode(edge.end, segNode, rightTr)
     u = XNode(edge.start, leftTr, v)
     trNode.replacePositionWith(dag, u)
+
+    if visualizer is not None:
+        visualizer.addDag(dag)
 
 
 def hardCase(dag: Dag, intersectingTrapezoids, segment: Line, visualizer = None):
@@ -166,8 +169,8 @@ def hardCase(dag: Dag, intersectingTrapezoids, segment: Line, visualizer = None)
             segNode = YNode(segment, upperMidTrapezoid, lowerMidTrapezoid)
             trapezoid.replacePositionWith(dag, segNode)
 
-        if visualizer is not None:
-            visualizer.addDag(dag)
+    if visualizer is not None:
+        visualizer.addDag(dag)
 
 
 #not used
@@ -195,8 +198,6 @@ def algo(edges, visualizer = None):
         findIntersectingTrapezoids(dag.root, edge, intersectingTrapezoids)
         if len(intersectingTrapezoids) == 1:
             simpleCase(intersectingTrapezoids[0], edge, dag, visualizer)
-            if visualizer is not None:
-                visualizer.addDag(dag)
         else:
             hardCase(dag, intersectingTrapezoids, edge, visualizer)
 

@@ -128,15 +128,15 @@ class TrapezoidNode:
     def toLines(self):
         lines = [self.topSegment.toList(), self.bottomSegment.toList()]
         leftVerticalLine = Line(self.topSegment.start, self.bottomSegment.start)
-        rightVerticalLine = Line(self.topSegment.end, self.bottomSegment.end)
+        if self.rightPoint is not None:
+            rightVerticalLine = Line(self.topSegment.end, self.bottomSegment.end)
+            lines.append(rightVerticalLine.toList())
         lines.append(leftVerticalLine.toList())
-        lines.append(rightVerticalLine.toList())
         return lines
 
-    def draw(self):
+    def getDrawable(self):
         newTr = createTrapezoid(self.topSegment, self.bottomSegment, self.leftPoint, self.rightPoint)
         return newTr.toLines()
-
 
 
 class Dag:
@@ -147,30 +147,12 @@ class Dag:
         self.root = root
 
 
-class Trapezoid:
-    def __init__(self, topE = None , bottomE = None , leftV = None , rightV = None):
-        self.topE = topE
-        self.bottomE = bottomE
-        self.leftV = leftV
-        self.rightV = rightV
-
-        self.upperRight = None
-        self.upperLeft = None
-        self.lowerLeft = None
-        self.lowerRight = None
-
-    # def __eq__(self):
-
-
 def createTrapezoid(topSegment, bottomSegment, leftPoint, rightPoint):
     newTr = TrapezoidNode()
 
-    # if rightPoint == None:
-    #     rightPoint = bottomSegment.end
-
     leftUpperPoint = Point(leftPoint.x, functionValue(topSegment, leftPoint.x))
-    rightUpperPoint = Point(rightPoint.x, functionValue(topSegment, rightPoint.x))
     leftLowerPoint = Point(leftPoint.x, functionValue(bottomSegment, leftPoint.x))
+    rightUpperPoint = Point(rightPoint.x, functionValue(topSegment, rightPoint.x))
     rightLowerPoint = Point(rightPoint.x, functionValue(bottomSegment, rightPoint.x))
 
     newTr.topSegment = Line(leftUpperPoint, rightUpperPoint)
