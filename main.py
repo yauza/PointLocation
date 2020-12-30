@@ -11,6 +11,7 @@ if __name__ == '__main__':
     plot.draw()
 
     lines = getLineObjects(getLineSegments(plot))
+    #lines = generateRandomLineSegments(1000, 0, 1000, 0, 1000)
 
     algo(lines, visualizer)
 

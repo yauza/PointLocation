@@ -1,5 +1,5 @@
 from ui.lib import Plot
-from ui.plot_utils import getLineSegments
+from ui.plot_utils import getLineSegments, generateRandomLineSegments
 from ui.visualizer import Visualizer
 
 
@@ -22,6 +22,19 @@ class Point:
 
     def toList(self):
         return [self.x, self.y]
+
+    def __str__(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ")"
+
+    def __eq__(self, other):
+        e = 10**-10
+        if -e < self.x - other.x < e:
+            if -e < self.y - other.y < e:
+                return True
+        return False
+
+    def __hash__(self):
+        return hash(tuple((self.x, self.y)))
 
 
 class Segment:
@@ -49,6 +62,9 @@ class Segment:
 
     def toList(self):
         return [(self.leftPoint.x, self.leftPoint.y), (self.rightPoint.x, self.rightPoint.y)]
+
+    def __str__(self):
+        return "[" + str(self.leftPoint) + ", " + str(self.rightPoint) + "]"
 
 
 class XNode:
@@ -178,6 +194,9 @@ class TrapezoidNode:
         newTr = createTrapezoid(self.topSegment, self.bottomSegment, self.leftPoint, self.rightPoint)
         return newTr.toLines()
 
+    def __str__(self):
+        return "<" + str(self.topSegment) + ", " + str(self.bottomSegment) + ", " + str(self.leftPoint) + ", " + str(self.rightPoint) + ">"
+
 
 def updateMapForOneTrapezoid(tzMap, trapezoid, segment, visualizer = None):
     """
@@ -189,9 +208,13 @@ def updateMapForOneTrapezoid(tzMap, trapezoid, segment, visualizer = None):
     :return: None
     """
     leftTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, trapezoid.leftPoint, segment.leftPoint)
+    # print("left --->   ", leftTrapezoid)
     topTrapezoid = TrapezoidNode(trapezoid.topSegment, segment, segment.leftPoint, segment.rightPoint)
+    # print("top --->   ", topTrapezoid)
     bottomTrapezoid = TrapezoidNode(segment, trapezoid.bottomSegment, segment.leftPoint, segment.rightPoint)
+    # print("bottom --->   ", bottomTrapezoid)
     rightTrapezoid = TrapezoidNode(trapezoid.topSegment, trapezoid.bottomSegment, segment.rightPoint, trapezoid.rightPoint)
+    # print("right --->   ", rightTrapezoid)
 
     segNode = YNode(segment, topTrapezoid, bottomTrapezoid)
     q = XNode(segment.rightPoint, segNode, rightTrapezoid)
@@ -266,7 +289,11 @@ def updateMapForManyTrapezoids(tzMap, intersectingTrapezoids, segment, visualize
 
 def findIntersectingTrapezoids1(node, segment, intersectingTrapezoids):
     if node.isLeaf:
+        print("segment  ", segment)
+        print("trapez  ", node)
         if node.containsSegment(segment):
+            print("zawiera")
+            print()
             if node not in intersectingTrapezoids:
                 intersectingTrapezoids.append(node)
 
@@ -279,10 +306,11 @@ def findIntersectingTrapezoids1(node, segment, intersectingTrapezoids):
                 findIntersectingTrapezoids1(node.right, segment, intersectingTrapezoids)
 
     else:
-        if node.lineSegment.isPointAbove(segment.leftPoint):
-            findIntersectingTrapezoids1(node.above, segment, intersectingTrapezoids)
-        else:
-            findIntersectingTrapezoids1(node.below, segment, intersectingTrapezoids)
+        #if node.lineSegment.isPointAbove(segment.leftPoint):
+        findIntersectingTrapezoids1(node.above, segment, intersectingTrapezoids)
+        #else:
+        findIntersectingTrapezoids1(node.below, segment, intersectingTrapezoids)
+
 
 
 class TZMap:
@@ -303,15 +331,33 @@ def createBox():
 
 def alg(lineSegments, visualizer = None):
     tzMap = TZMap(createBox())
+    points = set()
+    usedPoint = False
 
     for segment in lineSegments:
+        # if segment.leftPoint not in points:
+        #     points.add(segment.leftPoint)
+        # else:
+        #     usedPoint = True
+        #     segment.leftPoint.x += 10**-10
+        #
+        # if segment.rightPoint not in points:
+        #     points.add(segment.rightPoint)
+        # else:
+        #     usedPoint = True
+        #     segment.rightPoint.x += 10 **-10
+
         intersectingTrapezoids = []
         findIntersectingTrapezoids1(tzMap.root, segment, intersectingTrapezoids)
-        # handle new segment in two cases: it either intersects one trapezoid or many of them
+        print("przecina: ", len(intersectingTrapezoids))
+        print()
+
         if len(intersectingTrapezoids) == 1:
             updateMapForOneTrapezoid(tzMap, intersectingTrapezoids[0], segment, visualizer)
         else:
             updateMapForManyTrapezoids(tzMap, intersectingTrapezoids, segment, visualizer)
+
+        usedPoint = False
 
 
 def getLineObjects(lines):
@@ -324,7 +370,7 @@ def test():
     plot.draw()
 
     lines = getLineObjects(getLineSegments(plot))
-
+    #lines = generateRandomLineSegments(100, 0, 1000, 0, 1000)
     alg(lines, visualizer)
 
     plot = Plot(visualizer.getScenes())

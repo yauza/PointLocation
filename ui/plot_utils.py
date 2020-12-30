@@ -44,9 +44,9 @@ def generateRandomLineSegments(n, min_x, max_x, min_y, max_y):
             continue
 
         if x1 > x2:
-            segments.append(((x2, y2), (x1, y1)))
+            segments.append(Line(Point(x2, y2), Point(x1, y1)))
         else:
-            segments.append(((x1, y1), (x2, y2)))
+            segments.append(Line(Point(x1, y1), Point(x2, y2)))
 
         s.add(x1)
         s.add(x2)
