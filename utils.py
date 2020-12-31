@@ -4,8 +4,8 @@ from typing import List
 def edgesToPoints(edges):
     points = []
     for e in edges:
-        points.append(e.start)
-        points.append(e.end)
+        points.append(e.leftPoint)
+        points.append(e.rightPoint)
 
     return points
 
@@ -25,12 +25,12 @@ def edgesToUILines(edges):
         lines.append([[e.start.x, e.start.y], [e.end.x, e.end.y]])
     return lines
 
+
 def uiEdgesToUIPoints(lines):
     points = []
     for line in lines:
         points.extend(line)
     return points
-
 
 
 def coefficients(p1, p2):
@@ -39,27 +39,14 @@ def coefficients(p1, p2):
 
 
 def functionValue(seg, x):
-    a, b = coefficients(seg.start, seg.end)
+    a, b = coefficients(seg.leftPoint, seg.rightPoint)
     return a*x + b
 
 
-def segmentsIntersect(seg1, seg2):
-    s1, e1 = seg1.start, seg1.end
-    s2, e2 = seg2.start, seg2.end
-
-    if s1.x == e1.x:
-        if min(s1.y, e1.y) <= functionValue(seg2, s1.x) <= max(s1.y, e1.y):
-            return True
-        return False
-    elif s2.x == e2.x:
-        if min(s2.y, e2.y) <= functionValue(seg1, s2.x) <= max(s2.y, e2.y):
-            return True
-        return False
-
-    if (max(s1.x,e1.x) < min(s2.x,e2.x)):
-        return False
-    a1, b1 = coefficients(s1, e1)
-    a2, b2 = coefficients(s2, e2)
-    Xa = (b2 - b1) / (a1 - a2)
-    return not ((Xa < max( min(s1.x,e1.x), min(s2.x,e2.x) )) or (Xa > min( max(s1.x,e1.x), max(s2.x,e2.x) )))
-
+def functionValueWithCheck(seg, x):
+    a, b = coefficients(seg.leftPoint, seg.rightPoint)
+    val = a*x + b
+    if min(seg.leftPoint.y, seg.rightPoint.y) <= val <= max(seg.rightPoint.y, seg.leftPoint.y):
+        return val
+    else:
+        return seg.rightPoint.y

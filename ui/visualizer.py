@@ -36,6 +36,18 @@ class Visualizer:
                      [LinesCollection(trLines, color=self.trapezoid_color),
                       LinesCollection(dagData.lines, color=self.line_color)]))
 
+    def addDagWithResult(self, dag, tr, point):
+        dagData = DagData()
+        self.traverseDag(dagData, dag.root)
+        trLines = []
+        for trapezoid in dagData.trapezoids:
+            trLines.extend(trapezoid)
+        self.scenes.append(Scene([PointsCollection(dagData.points, color=self.point_color),
+                                  PointsCollection([point.toList()], color='red')],
+                                 [LinesCollection(trLines, color=self.trapezoid_color),
+                                  LinesCollection(dagData.lines, color=self.line_color),
+                                  LinesCollection(tr.getDrawable(), color='magenta')]))
+
     def traverseDag(self, dagData: DagData, node):
         if node is None:
             return

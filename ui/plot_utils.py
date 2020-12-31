@@ -1,6 +1,6 @@
 from random import randint
 
-from structures import Line, Point
+from structures import Segment, Point
 
 
 def getLineSegments(plot):
@@ -11,9 +11,9 @@ def getFigureSegments(plot):
     segments = plot.get_added_figure().lines[0].lines
     return segments
 
-def getLineObjects(lines):
-    return [Line(Point(line[0][0], line[0][1]), Point(line[1][0], line[1][1])) for line in lines]
 
+def getLineObjects(lines):
+    return [Segment("",Point("",line[0][0], line[0][1]), Point("",line[1][0], line[1][1])) for line in lines]
 
 def getPoints(plot):
     seg = plot.get_added_elements().lines[0].lines
@@ -44,9 +44,9 @@ def generateRandomLineSegments(n, min_x, max_x, min_y, max_y):
             continue
 
         if x1 > x2:
-            segments.append(Line(Point(x2, y2), Point(x1, y1)))
+            segments.append(Segment(Point(x2, y2), Point(x1, y1)))
         else:
-            segments.append(Line(Point(x1, y1), Point(x2, y2)))
+            segments.append(Segment(Point(x1, y1), Point(x2, y2)))
 
         s.add(x1)
         s.add(x2)
