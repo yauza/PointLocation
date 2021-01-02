@@ -21,15 +21,22 @@ pol1_toLines = [l1.toList(), l2.toList(), l3.toList(), l4.toList(), l5.toList(),
 
 
 s1 = Segment("", Point("", 0.1, 0.8), Point("", 0.15, 0.1))
-s2 = Segment("", Point("", 0.10000001, 0.8), Point("", 0.3, 0.5))
-s3 = Segment("", Point("", 0.15000001, 0.1), Point("", 0.3, 0.49999999))
-s4 = Segment("", Point("", 0.15, 0.0999999), Point("", 0.9, 0.3))
-s5 = Segment("", Point("", 0.90000001, 0.3), Point("", 0.8, 0.9))
-s6 = Segment("", Point("", 0.80000001, 0.9), Point("", 0.1, 0.80000002))
+s2 = Segment("", Point("", 0.10001, 0.8), Point("", 0.3, 0.5))
+s3 = Segment("", Point("", 0.15001, 0.1), Point("", 0.3, 0.499))
+s4 = Segment("", Point("", 0.15, 0.0999), Point("", 0.9, 0.3))
+s5 = Segment("", Point("", 0.90001, 0.3), Point("", 0.8001, 0.9))
+s6 = Segment("", Point("", 0.80001, 0.9), Point("", 0.1, 0.8002))
+
+s7 = Segment("", Point("", 0.4, 0.47), Point("", 0.7, 0.45))
+s8 = Segment("", Point("", 0.7001, 0.45), Point("", 0.650, 0.7))
+s9 = Segment("", Point("", 0.6501, 0.7001), Point("", 0.4001, 0.47))
 
 pol2 = [s1, s2, s3, s4, s5, s6]
 pol2_alal = [s6, s3, s4, s1, s5, s2]
 pol2_toLines = [s1.toList(), s2.toList(), s3.toList(), s4.toList(), s5.toList(), s6.toList()]
+
+pol3 = [s6, s3, s4, s1, s5, s2, s8, s7, s9]
+pol3_toLines = [s1.toList(), s2.toList(), s3.toList(), s4.toList(), s5.toList(), s6.toList(), s7.toList(), s8.toList(), s9.toList()]
 
 
 
